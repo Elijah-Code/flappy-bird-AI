@@ -2,6 +2,8 @@ import random
 import numpy as np 
 from neuron import Connection, Neuron
 
+#TODO: make sure their is always at least one conn to output neuron
+
 from overview import logger
 
 class Innovation:
@@ -64,12 +66,17 @@ class Network:
             next_layer = self.layers[layer_ix + 1]
             for neuron in layer:
                 for next_neuron in next_layer:
-                    if np.random.uniform(0,1) <= 0.8:
+                    if np.random.uniform(0,1) <= 0.5:
                         conn = Connection(neuron, next_neuron, Innovation.innov_nb)
-                        self.conns.append(conn)  
+                        self.conns.append(conn)
+
+                    if neuron.type == "input" and len(neuron.output_conn) == 0:
+                        conn = Connection(neuron, next_neuron, Innovation.innov_nb)
+                        self.conns.append(conn)
+
                         
     def add_random_neuron(self):
-        origin_ix = np.random.randint(1, len(self.layers)-1)
+        origin_ix = np.random.randint(1, len(self.layers)-2)
         neuron = Neuron('hidden')
         new_layer = [neuron]
         before_layer = random.choice(self.layers[:origin_ix])
@@ -82,32 +89,45 @@ class Network:
                 conn.disable() 
         
         innov_id = Innovation.innov_nb
-        self.layers.append(new_layer)
+        self.layers.insert(origin_ix, new_layer)
         self.conns.append(Connection(before_neuron, neuron, innov_id))
         self.conns.append(Connection(neuron, after_neuron, innov_id))
 
 
     def del_random_neuron(self):
-        random_neuron = np.random.choice(np.random.choice(self.layers))
-        random_neuron.disable()
+        random_neuron = random.choice(random.choice(self.layers[1:-1]))
+        types = []
+        for conn in random_neuron.input_conn:
+            types.append(conn.in_neuron.type)
+        if "input" not in types:
+            random_neuron.disable()
     
+    def get_random_layer(self, limit):
+        layer_ix = np.random.randint(limit)
+        return layer_ix
+
+    def get_random_neuron(self, layer_ix):
+        random_neuron = np.random.choice(self.layers[layer_ix])
+        return random_neuron
+
     def add_random_connection(self):
-        layer1_ix = np.random.randint(len(self.layers)-1)
-        layer2_ix = np.random.randint(len(self.layers))
+        layer1_ix = self.get_random_layer(len(self.layers)-1)
+        layer2_ix = self.get_random_layer(len(self.layers))
 
         first = min(layer1_ix, layer2_ix)
         second = max(layer1_ix, layer2_ix)
         if first == second:
             second += 1
 
-        random_neuron1 = np.random.choice(self.layers[first])
-        random_neuron2 = np.random.choice(self.layers[second])
+        random_neuron1 = self.get_random_neuron(first)
+        random_neuron2 = self.get_random_neuron(second)
 
-        conn = Connection(random_neuron1, random_neuron2, Innovation.innov_nb)
-        self.conns.append(conn)
+        if random_neuron1.enabled and random_neuron2.enabled: 
+            conn = Connection(random_neuron1, random_neuron2, Innovation.innov_nb)
+            self.conns.append(conn)
 
     def del_random_connection(self):
-        conn = np.random.choice(self.conns)
+        conn = random.choice([c for c in self.conns if c.in_neuron.type != "input"])
         conn.disable()
     
     def mutate_weights(self):
@@ -122,7 +142,6 @@ class Network:
     def forward_prop(self, inputs):
 
         for ix, neuron in enumerate(self.layers[0]):
-
             neuron.receive(inputs[ix])
             neuron.fire()
 

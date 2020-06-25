@@ -2,6 +2,7 @@ import numpy as np
 
 from organism import Organism
 from overview import logger
+from config import *
 
 class Pool:
     def __init__(self, init_population_nb):
@@ -25,6 +26,7 @@ class Pool:
         print("MIN:", fitnesses[0])
         print("MEAN:", np.mean(fitnesses))
         logger.print_var_mean("network_output")
+        print("GEN:", self.gen)
 
         print("----------------------")
 
@@ -42,7 +44,7 @@ class Pool:
         # Sort by fitness
         self.population.sort(key=lambda o: o.fitness)
         
-        best = self.population[-10:]
+        best = self.population[-SURVIVORS:]
         new_pop = best + [c.get_mutant_child() for c in best]
 
         self.population = new_pop

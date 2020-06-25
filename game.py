@@ -6,7 +6,9 @@ import time
 from overview import logger
 import neat
 from config import *
-# TODO: make it better
+from visualize_network import Visualizer
+
+#TODO: fix score problem and write highest score on the window
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -17,8 +19,9 @@ GRAVITY = 10
 JUMP_STRENGTH = 5
 JUMP_LENGTH = 12
 WINDOW_SIZE = (400, 500)
+NET_POS = (10,10)
 SHRINK_RECTS = .8
-SPEED = 10
+SPEED = 0.1
 BIRD_X = 100
 
 def convert_to_rect(sprite, pos):
@@ -97,7 +100,7 @@ class Bird:
 
     def __init__(self):
         self.sprite = pygame.image.load('images/bird1.png')
-        self.pos = [BIRD_X,250]
+        self.pos = [BIRD_X, random.randint(50, 450)]
         self.jumping = 0
 
 
@@ -112,8 +115,6 @@ class Bird:
         if self.jumping != 0:
             self.jumping -= 1
             self.pos[1] -= int(JUMP_STRENGTH * self.jumping / 2)
-
-        pygame.draw.circle(screen, (255, 0, 0), self.pos, 2)
 
         screen.blit(self.sprite, self.pos)
         self.pos[1] += GRAVITY
@@ -144,10 +145,10 @@ def collide_win(bird,):
     return False
 
 
-def flappy_bird_game(pool):
+def flappy_bird_game(pool, vis):
     global SPEED
 
-    pipe_coords = PipeCoords(20, x_speed=SPEED)
+    pipe_coords = PipeCoords(40, x_speed=SPEED)
     top_pipe = Pipe(pipe_coords, _type="top")
     bottom_pipe = Pipe(pipe_coords, _type="bottom")
     background = pygame.image.load('images/background.png')
@@ -181,12 +182,12 @@ def flappy_bird_game(pool):
 
         if top_pipe.coords[0] - pipe_coords.x_speed < BIRD_X < top_pipe.coords[0] + pipe_coords.x_speed:
             points += 1
-        
+
         for bird, organism in zip(birds, pool.population):
-            inputs = [bird.jumping, bird.pos[1], top_pipe.coords[0] ,top_pipe.coords[1], bottom_pipe.coords[1]]
+            inputs = [bird.jumping, bird.pos[1], top_pipe.coords[0] , top_pipe.coords[1], bottom_pipe.coords[1]]
 
             if len(birds) == dead_birds:
-                    return birds
+                return birds
 
             if not organism.is_alive:
                 continue
@@ -196,26 +197,22 @@ def flappy_bird_game(pool):
 
             bird.draw(screen)
         
-                
+
             if collide_win(bird) or collide_pipes(bird, top_pipe, bottom_pipe):
                 organism.is_alive = 0
                 organism.fitness = points
                 dead_birds += 1
 
-
+        screen.blit(vis.get_surface(), NET_POS)
         pygame.display.flip()
+
 
 pool = neat.Pool(POPULATION)
 
-gen = 0
 while True:
-    flappy_bird_game(pool)
+    vis = Visualizer(pool, (350, 500), scale=30, space=30)
+    flappy_bird_game(pool, vis)
     pool.new_gen()
-    
-    logger.print_infos(pool)
-    logger.print_infos(pool.population[0])
-    gen += 1
 
-
-
-     
+    # logger.print_infos(pool)
+    # logger.print_infos(pool.population[0])

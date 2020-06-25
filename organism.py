@@ -22,7 +22,6 @@ class Organism:
         self.network.print_infos()
 
     def decision(self, inputs):
-        
         out = self.network.forward_prop(inputs)
         logger.add_var_value("network_output", out)
 
@@ -35,19 +34,20 @@ class Organism:
     
     def mutate(self):
         options = [
-            # self.network.add_random_neuron,
+            self.network.add_random_neuron,
             self.network.del_random_neuron,
-            # self.network.add_random_connection,
+            self.network.add_random_connection,
             self.network.del_random_connection,
-            self.network.mutate_weights,
+            self.network.mutate_weights
         ]
-
         # DEBUG
         try:
             func = np.random.choice(options)
             func()
-        except ValueError:
+        except Exception as e:
             print("SOMETHING CRASHED HERE, DEBUG ME (organism.py line 43=, function mutate)")
+            print("Error occured in", func.__name__)
+            print("Error", str(e))
             import ipdb; ipdb.set_trace()
 
     def get_mutant_child(self):
@@ -56,6 +56,7 @@ class Organism:
         return child
 
     
+
 
 
 

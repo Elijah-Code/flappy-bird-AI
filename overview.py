@@ -32,7 +32,6 @@ import numpy as np
 
 
 class Logger():
-
     def __init__(self):
         self.containers = {}
 
