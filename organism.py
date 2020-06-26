@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 from config import *
 from network import Network
@@ -40,15 +41,8 @@ class Organism:
             self.network.del_random_connection,
             self.network.mutate_weights
         ]
-        # DEBUG
-        try:
-            func = np.random.choice(options)
-            func()
-        except Exception as e:
-            print("SOMETHING CRASHED HERE, DEBUG ME (organism.py line 43=, function mutate)")
-            print("Error occured in", func.__name__)
-            print("Error", str(e))
-            import ipdb; ipdb.set_trace()
+        choice = np.random.choice(options)
+        choice()
 
     def get_mutant_child(self):
         child = self.clone()

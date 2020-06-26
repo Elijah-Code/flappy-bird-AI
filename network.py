@@ -2,8 +2,6 @@ import random
 import numpy as np 
 from neuron import Connection, Neuron
 
-#TODO: make sure their is always at least one conn to output neuron
-
 from overview import logger
 
 class Innovation:
@@ -127,7 +125,7 @@ class Network:
             self.conns.append(conn)
 
     def del_random_connection(self):
-        conn = random.choice([c for c in self.conns if c.in_neuron.type != "input"])
+        conn = random.choice([c for c in self.conns if c.in_neuron.type != "input" and c.out_neuron.type != "output"])
         conn.disable()
     
     def mutate_weights(self):
@@ -148,6 +146,7 @@ class Network:
         for hidden in self.layers[1:-1]:
             for neuron in hidden:
                 v = neuron.fire()
+                #neuron.fire()
 
 
         output_layer = [neuron.output_value() for neuron in self.layers[-1]]
